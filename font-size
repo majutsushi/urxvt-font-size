@@ -154,7 +154,7 @@ sub handle_font
     if ($font =~ /^\s*(\[.*\])?xft:/) {
         ($newfont, $newsize) = font_change_size_xft($term, $font, $change, $basesize);
     } elsif ($font =~ /^\s*-/) {
-        ($newfont, $newsize) = font_change_size_x11($term, $font, $change, $basesize);
+        ($newfont, $newsize) = font_change_size_xlfd($term, $font, $change, $basesize);
     } else {
         # check whether the font is a valid alias and if yes resolve it to the
         # actual font
@@ -171,7 +171,7 @@ sub handle_font
 
         my $fontinfo = (split(/\n/, $lsfinfo))[-1];
         my ($fontfull) = ($fontinfo =~ /\s+([-a-z0-9]+$)/);
-        ($newfont, $newsize) = font_change_size_x11($term, $fontfull, $change, $basesize);
+        ($newfont, $newsize) = font_change_size_xlfd($term, $fontfull, $change, $basesize);
     }
 
     # $term->scr_add_lines("\r\nNew font is $newfont\n");
@@ -218,7 +218,7 @@ sub font_change_size_xft
     }
 }
 
-sub font_change_size_x11
+sub font_change_size_xlfd
 {
     my ($term, $fontstring, $change, $basesize) = @_;
 
