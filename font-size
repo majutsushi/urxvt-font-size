@@ -191,7 +191,7 @@ sub font_change_size_xft
     my $new_size = 0;
 
     foreach my $piece (@pieces) {
-        if ($piece =~ /pixelsize=(\d+)/) {
+        if ($piece =~ /^(?:(?:pixel)?size=|[^=-]+-)(\d+)$/) {
             $size = $1;
 
             if ($basesize != 0) {
@@ -200,7 +200,7 @@ sub font_change_size_xft
                 $new_size = ($change > 0 ? ($size + 1) : ($size - 1));
             }
 
-            $piece =~ s/pixelsize=$size/pixelsize=$new_size/;
+            $piece =~ s/(=|-)$size/$1$new_size/;
         }
         push @resized, $piece;
     }
@@ -208,7 +208,7 @@ sub font_change_size_xft
     my $resized_str = join(":", @resized);
 
     # don't make fonts too small
-    if ($new_size >= 10) {
+    if ($new_size >= 6) {
         return ($resized_str, $new_size);
     } else {
         if ($basesize == 0) {
