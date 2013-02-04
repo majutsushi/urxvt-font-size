@@ -90,7 +90,8 @@ sub fonts_change_size
 
     my $curres = $term->resource('font');
     if (!$curres) {
-        return;
+        $term->scr_add_lines("\r\nWarning: No font configured, trying a default.\r\nPlease set a font with the 'URxvt.font' resource.");
+        $curres = "fixed";
     }
     my @curfonts = split(/,/, $curres);
 
