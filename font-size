@@ -231,6 +231,10 @@ sub font_change_size_xlfd
     $fontstring =~ s/^-//;  # Strip leading - before split
     @font{@fields} = split(/-/, $fontstring);
 
+    if ($font{pixelSize} eq '*') {
+        $term->scr_add_lines("\r\nWarning: Font size undefined, assuming 12.\r\nPlease set the 'URxvt.font' resource to a font with a concrete size.");
+        $font{pixelSize} = '12'
+    }
     if ($font{registry} eq '*') {
         $font{registry} ='iso8859';
     }
