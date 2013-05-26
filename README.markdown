@@ -49,13 +49,26 @@ The following functions are supported:
     `~/.Xresources` file so the changed font sizes will persist over a restart
     of the X server or a reboot.
 
+You can also change the step size that the script will use to increase the
+font size:
+
+```
+URxvt.font-size.step: 4
+```
+
+The default step size is 1. This means that with this setting a size change
+sequence would be for example 8->12->16->20 instead of 8->9->10->11->12 etc.
+Please note that many X11 fonts are only available in specific sizes, though,
+and odd sizes are often not available, resulting in an effective step size of
+2 instead of 1 in that case.
+
 Troubleshooting
 ---------------
 
 At its core urxvt-font-size is just a fancy wrapper around the `ESC ] 710;Pt
 ST` (and 711/712/713 for bold, italic, and bold-italic) escape sequences. So
-if you are having trouble with this plugin please try the escape sequence
-directly like this (outside a terminal multiplexer like screen or tmux):
+if you are having trouble with this script please try the escape sequence
+directly like this (outside of a terminal multiplexer like screen or tmux):
 
 ```
 $ echo -e "\033]710;fixed\033\\"

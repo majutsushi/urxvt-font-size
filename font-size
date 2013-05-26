@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2008 David O'Neill
 #               2012 Noah K. Tilton <noahktilton@gmail.com>
-#               2012 Jan Larres <jan@majutsushi.net>
+#               2012-2013 Jan Larres <jan@majutsushi.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -63,22 +63,31 @@ my %escapecodes = (
     "boldItalicFont" => 713
 );
 
+sub on_start
+{
+    my ($self) = @_;
+
+    $self->{step} = $self->x_resource("%.step") || 1;
+}
+
 sub on_user_command
 {
     my ($self, $cmd) = @_;
 
+    my $step = $self->{step};
+
     if ($cmd eq "font-size:increase") {
-        fonts_change_size($self,  1, 0);
+        fonts_change_size($self,  $step, 0);
     } elsif ($cmd eq "font-size:decrease") {
-        fonts_change_size($self, -1, 0);
+        fonts_change_size($self, -$step, 0);
     } elsif ($cmd eq "font-size:incglobal") {
-        fonts_change_size($self,  1, 1);
+        fonts_change_size($self,  $step, 1);
     } elsif ($cmd eq "font-size:decglobal") {
-        fonts_change_size($self, -1, 1);
+        fonts_change_size($self, -$step, 1);
     } elsif ($cmd eq "font-size:incsave") {
-        fonts_change_size($self,  1, 2);
+        fonts_change_size($self,  $step, 2);
     } elsif ($cmd eq "font-size:decsave") {
-        fonts_change_size($self, -1, 2);
+        fonts_change_size($self, -$step, 2);
     }
 }
 
@@ -198,7 +207,7 @@ sub font_change_size_xft
             if ($basesize != 0) {
                 $new_size = $basesize;
             } else {
-                $new_size = ($change > 0 ? ($size + 1) : ($size - 1));
+                $new_size = $size + $change
             }
 
             $piece =~ s/(=|-)$size/$1$new_size/;
@@ -293,7 +302,7 @@ sub font_change_size_xlfd
         @possible = sort {$a->[0] <=> $b->[0]} @possible;
 
         foreach my $candidate (@possible) {
-            if ($candidate->[0] > $font{pixelSize}) {
+            if ($candidate->[0] >= $font{pixelSize} + $change) {
                 return ($candidate->[1], $candidate->[0]);
             }
         }
@@ -302,7 +311,7 @@ sub font_change_size_xlfd
         @possible = sort {$b->[0] <=> $a->[0]} @possible;
 
         foreach my $candidate (@possible) {
-            if ($candidate->[0] < $font{pixelSize} && $candidate->[0] != 0) {
+            if ($candidate->[0] <= $font{pixelSize} + $change && $candidate->[0] != 0) {
                 return ($candidate->[1], $candidate->[0]);
             }
         }
