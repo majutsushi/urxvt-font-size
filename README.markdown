@@ -48,3 +48,27 @@ The following functions are supported:
 -   `incsave`/`decsave`: same as incglobal/decglobal and also modify the
     `~/.Xresources` file so the changed font sizes will persist over a restart
     of the X server or a reboot.
+
+Troubleshooting
+---------------
+
+At its core urxvt-font-size is just a fancy wrapper around the `ESC ] 710;Pt
+ST` (and 711/712/713 for bold, italic, and bold-italic) escape sequences. So
+if you are having trouble with this plugin please try the escape sequence
+directly like this (outside a terminal multiplexer like screen or tmux):
+
+```
+$ echo -e "\033]710;fixed\033\\"
+```
+
+You can exchange `fixed` for any (single) font that you want to try, like for
+example `-xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1`:
+
+```
+$ echo -e "\033]710;-xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1\033\\"
+```
+
+If you can reproduce the problem this way then the problem does not lie with
+the urxvt-font-size script, but either directly with urxvt or some other
+component that may interfere (like for example a window manager). Please
+report the bug to those projects in that case.
