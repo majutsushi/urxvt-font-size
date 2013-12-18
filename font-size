@@ -201,7 +201,7 @@ sub font_change_size_xft
     my $new_size = 0;
 
     foreach my $piece (@pieces) {
-        if ($piece =~ /^(?:(?:pixel)?size=|[^=-]+-)(\d+)$/) {
+        if ($piece =~ /^(?:(?:pixel)?size=|[^=-]+-)(\d+(\.\d*)?)$/) {
             $size = $1;
 
             if ($basesize != 0) {
