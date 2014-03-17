@@ -41,13 +41,15 @@ URxvt.keysym.C-S-Down: perl:font-size:decglobal
 
 The following functions are supported:
 
--   `increase`/`decrease`: increase or decrease the font size of the current
+-   `increase`/`decrease`: Increase or decrease the font size of the current
     terminal.
--   `incglobal`/`decglobal`: same as above and also adjust the X server values
+-   `incglobal`/`decglobal`: Same as above and also adjust the X server values
     so all newly started terminals will use the same fontsize.
--   `incsave`/`decsave`: same as incglobal/decglobal and also modify the
+-   `incsave`/`decsave`: Same as incglobal/decglobal and also modify the
     `~/.Xresources` file so the changed font sizes will persist over a restart
     of the X server or a reboot.
+-   `reset`: Reset the font size to the value of the resource when starting
+    the terminal.
 
 You can also change the step size that the script will use to increase the
 font size:

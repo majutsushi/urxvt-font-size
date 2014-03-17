@@ -81,6 +81,10 @@ sub on_start
     my ($self) = @_;
 
     $self->{step} = $self->x_resource("%.step") || 1;
+
+    foreach my $type (qw(font boldFont italicFont boldItalicFont)) {
+        $self->{$type} = $self->x_resource($type) || "undef";
+    }
 }
 
 sub on_user_command
@@ -101,6 +105,8 @@ sub on_user_command
         fonts_change_size($self,  $step, 2);
     } elsif ($cmd eq "font-size:decsave") {
         fonts_change_size($self, -$step, 2);
+    } elsif ($cmd eq "font-size:reset") {
+        fonts_reset($self);
     }
 }
 
@@ -139,6 +145,18 @@ sub fonts_change_size
         # write the new values back to the file
         my $xresources = readlink $ENV{"HOME"} . "/.Xresources";
         system("xrdb -edit " . $xresources);
+    }
+}
+
+sub fonts_reset
+{
+    my ($term) = @_;
+
+    foreach my $type (qw(font boldFont italicFont boldItalicFont)) {
+        my $initial = $term->{$type};
+        if ($initial ne "undef") {
+            font_apply_new($term, $initial, $type, 0);
+        }
     }
 }
 
