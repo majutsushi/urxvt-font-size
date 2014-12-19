@@ -121,7 +121,7 @@ sub fonts_change_size
         $term->scr_add_lines("\r\nWarning: No font configured, trying a default.\r\nPlease set a font with the 'URxvt.font' resource.");
         $curres = "fixed";
     }
-    my @curfonts = split(/,/, $curres);
+    my @curfonts = split(/\s*,\s*/, $curres);
 
     my $basefont = shift(@curfonts);
     my ($newbasefont, $newbasesize) = handle_font($term, $basefont, $change, 0);
@@ -168,7 +168,7 @@ sub handle_type
     if (!$curres) {
         return;
     }
-    my @curfonts = split(/,/, $curres);
+    my @curfonts = split(/\s*,\s*/, $curres);
     my @newfonts = ();
 
     foreach my $font (@curfonts) {
