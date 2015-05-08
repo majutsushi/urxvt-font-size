@@ -30,41 +30,60 @@
 # https://github.com/dave0/urxvt-font-size
 # https://github.com/noah/urxvt-font
 #
-#
-# USAGE
-#
-# Put the font-size script into $HOME/.urxvt/ext/ and add it to the list of
-# enabled perl-extensions in ~/.Xresources:
-#   URxvt.perl-ext-common: ...,font-size
-#
-# Add some keybindings:
-#   URxvt.keysym.C-Up:     perl:font-size:increase
-#   URxvt.keysym.C-Down:   perl:font-size:decrease
-#   URxvt.keysym.C-S-Up:   perl:font-size:incglobal
-#   URxvt.keysym.C-S-Down: perl:font-size:decglobal
-#
-# Supported functions:
-# - increase/decrease:
-#       increase or decrease the font size of the current terminal.
-# - incglobal/decglobal:
-#       same as above and also adjust the X server values so all newly started
-#       terminals will use the same fontsize.
-# - incsave/decsave:
-#       same as incglobal/decglobal and also modify the ~/.Xresources file so
-#       the changed font sizes will persist over a restart of the X server or
-#       a reboot.
-#
-# You can also change the step size that the script will use to increase the
-# font size:
-#
-#   URxvt.font-size.step: 4
-#
-# The default step size is 1. This means that with this setting a size change
-# sequence would be for example 8->12->16->20 instead of 8->9->10->11->12 etc.
-# Please note that many X11 fonts are only available in specific sizes, though,
-# and odd sizes are often not available, resulting in an effective step size of
-# 2 instead of 1 in that case.
 
+#:META:X_RESOURCE:%.step:interger:font size increase/decrease step
+
+=head1 NAME
+
+font-size - interactive font size setter
+
+=head1 USAGE
+
+Put the font-size script into $HOME/.urxvt/ext/ and add it to the list
+of enabled perl-extensions in ~/.Xresources:
+
+  URxvt.perl-ext-common: ...,font-size
+
+Add some keybindings:
+
+  URxvt.keysym.C-Up:     perl:font-size:increase
+  URxvt.keysym.C-Down:   perl:font-size:decrease
+  URxvt.keysym.C-S-Up:   perl:font-size:incglobal
+  URxvt.keysym.C-S-Down: perl:font-size:decglobal
+
+Supported functions:
+
+=over 2
+
+=item * increase/decrease:
+
+      increase or decrease the font size of the current terminal.
+
+=item * incglobal/decglobal:
+
+      same as above and also adjust the X server values so all newly
+      started terminals will use the same fontsize.
+
+=item * incsave/decsave:
+
+      same as incglobal/decglobal and also modify the ~/.Xresources
+      file so the changed font sizes will persist over a restart of
+      the X server or a reboot.
+
+=back
+
+You can also change the step size that the script will use to increase
+the font size:
+
+  URxvt.font-size.step: 4
+
+The default step size is 1. This means that with this setting a
+size change sequence would be for example 8->12->16->20 instead of
+8->9->10->11->12 etc. Please note that many X11 fonts are only
+available in specific sizes, though, and odd sizes are often not
+available, resulting in an effective step size of 2 instead of 1
+in that case.
+=cut
 
 use strict;
 use warnings;
