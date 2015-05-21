@@ -106,25 +106,25 @@ sub on_start
     }
 }
 
-sub on_user_command
+sub on_action
 {
     my ($self, $cmd) = @_;
 
     my $step = $self->{step};
 
-    if ($cmd eq "font-size:increase") {
+    if ($cmd eq "increase") {
         fonts_change_size($self,  $step, 0);
-    } elsif ($cmd eq "font-size:decrease") {
+    } elsif ($cmd eq "decrease") {
         fonts_change_size($self, -$step, 0);
-    } elsif ($cmd eq "font-size:incglobal") {
+    } elsif ($cmd eq "incglobal") {
         fonts_change_size($self,  $step, 1);
-    } elsif ($cmd eq "font-size:decglobal") {
+    } elsif ($cmd eq "decglobal") {
         fonts_change_size($self, -$step, 1);
-    } elsif ($cmd eq "font-size:incsave") {
+    } elsif ($cmd eq "incsave") {
         fonts_change_size($self,  $step, 2);
-    } elsif ($cmd eq "font-size:decsave") {
+    } elsif ($cmd eq "decsave") {
         fonts_change_size($self, -$step, 2);
-    } elsif ($cmd eq "font-size:reset") {
+    } elsif ($cmd eq "reset") {
         fonts_reset($self);
     }
 }
