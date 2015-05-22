@@ -46,6 +46,13 @@ of enabled perl-extensions in ~/.Xresources:
 
 Add some keybindings:
 
+  URxvt.keysym.C-Up:     font-size:increase
+  URxvt.keysym.C-Down:   font-size:decrease
+  URxvt.keysym.C-S-Up:   font-size:incglobal
+  URxvt.keysym.C-S-Down: font-size:decglobal
+
+Note that for urxvt versions older than 9.21 the resources have to look like this:
+
   URxvt.keysym.C-Up:     perl:font-size:increase
   URxvt.keysym.C-Down:   perl:font-size:decrease
   URxvt.keysym.C-S-Up:   perl:font-size:incglobal
@@ -106,6 +113,7 @@ sub on_start
     }
 }
 
+# Needed for backwards compatibility with < 9.21
 sub on_user_command
 {
     my ($self, $cmd) = @_;
@@ -125,6 +133,29 @@ sub on_user_command
     } elsif ($cmd eq "font-size:decsave") {
         fonts_change_size($self, -$step, 2);
     } elsif ($cmd eq "font-size:reset") {
+        fonts_reset($self);
+    }
+}
+
+sub on_action
+{
+    my ($self, $action) = @_;
+
+    my $step = $self->{step};
+
+    if ($action eq "increase") {
+        fonts_change_size($self,  $step, 0);
+    } elsif ($action eq "decrease") {
+        fonts_change_size($self, -$step, 0);
+    } elsif ($action eq "incglobal") {
+        fonts_change_size($self,  $step, 1);
+    } elsif ($action eq "decglobal") {
+        fonts_change_size($self, -$step, 1);
+    } elsif ($action eq "incsave") {
+        fonts_change_size($self,  $step, 2);
+    } elsif ($action eq "decsave") {
+        fonts_change_size($self, -$step, 2);
+    } elsif ($action eq "reset") {
         fonts_reset($self);
     }
 }
