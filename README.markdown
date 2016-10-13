@@ -37,6 +37,8 @@ URxvt.keysym.C-Up:     font-size:increase
 URxvt.keysym.C-Down:   font-size:decrease
 URxvt.keysym.C-S-Up:   font-size:incglobal
 URxvt.keysym.C-S-Down: font-size:decglobal
+URxvt.keysym.C-equal:  font-size:reset
+URxvt.keysym.C-slash:  font-size:show
 ```
 
 Note that for urxvt versions older than 9.21 the resources have to look like this:
@@ -46,6 +48,8 @@ URxvt.keysym.C-Up:     perl:font-size:increase
 URxvt.keysym.C-Down:   perl:font-size:decrease
 URxvt.keysym.C-S-Up:   perl:font-size:incglobal
 URxvt.keysym.C-S-Down: perl:font-size:decglobal
+URxvt.keysym.C-equal   perl:font-size:reset
+URxvt.keysym.C-slash   perl:font-size:show
 ```
 
 The following functions are supported:
@@ -59,6 +63,7 @@ The following functions are supported:
     of the X server or a reboot.
 -   `reset`: Reset the font size to the value of the resource when starting
     the terminal.
+-   `show`: Show the current value of the `font` resource in a popup.
 
 You can also change the step size that the script will use to increase the
 font size:

@@ -4,7 +4,8 @@
 #
 # Copyright (c) 2008 David O'Neill
 #               2012 Noah K. Tilton <noahktilton@gmail.com>
-#               2012-2013 Jan Larres <jan@majutsushi.net>
+#               2009-2012 Simon Lundström <simmel@soy.se>
+#               2012-2016 Jan Larres <jan@majutsushi.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -29,6 +30,7 @@
 # Based on:
 # https://github.com/dave0/urxvt-font-size
 # https://github.com/noah/urxvt-font
+# https://github.com/simmel/urxvt-resize-font
 #
 
 #:META:X_RESOURCE:%.step:interger:font size increase/decrease step
@@ -50,6 +52,8 @@ Add some keybindings:
   URxvt.keysym.C-Down:   font-size:decrease
   URxvt.keysym.C-S-Up:   font-size:incglobal
   URxvt.keysym.C-S-Down: font-size:decglobal
+  URxvt.keysym.C-equal:  font-size:reset
+  URxvt.keysym.C-slash:  font-size:show
 
 Note that for urxvt versions older than 9.21 the resources have to look like this:
 
@@ -57,6 +61,8 @@ Note that for urxvt versions older than 9.21 the resources have to look like thi
   URxvt.keysym.C-Down:   perl:font-size:decrease
   URxvt.keysym.C-S-Up:   perl:font-size:incglobal
   URxvt.keysym.C-S-Down: perl:font-size:decglobal
+  URxvt.keysym.C-equal   perl:font-size:reset
+  URxvt.keysym.C-slash   perl:font-size:show
 
 Supported functions:
 
@@ -76,6 +82,15 @@ Supported functions:
       same as incglobal/decglobal and also modify the ~/.Xresources
       file so the changed font sizes will persist over a restart of
       the X server or a reboot.
+
+=item * reset:
+
+      reset the font size to the value of the resource when starting
+      the terminal.
+
+=item * show
+
+      show the current value of the 'font' resource in a popup.
 
 =back
 
@@ -134,6 +149,8 @@ sub on_user_command
         fonts_change_size($self, -$step, 2);
     } elsif ($cmd eq "font-size:reset") {
         fonts_reset($self);
+    } elsif ($cmd eq "font-size:show") {
+        fonts_show($self);
     }
 }
 
@@ -157,6 +174,8 @@ sub on_action
         fonts_change_size($self, -$step, 2);
     } elsif ($action eq "reset") {
         fonts_reset($self);
+    } elsif ($action eq "show") {
+        fonts_show($self);
     }
 }
 
@@ -208,6 +227,23 @@ sub fonts_reset
             font_apply_new($term, $initial, $type, 0);
         }
     }
+}
+
+sub fonts_show
+{
+    my ($term) = @_;
+
+    my $out = $term->resource('font');
+    $out =~ s/\s*,\s*/\n/g;
+
+    $term->{'font-size'}{'overlay'} = {
+        overlay => $term->overlay_simple(0, -1, $out),
+        timer => urxvt::timer->new->start(urxvt::NOW + 5)->cb(
+            sub {
+                delete $term->{'font-size'}{'overlay'};
+            }
+        ),
+    };
 }
 
 sub handle_type
