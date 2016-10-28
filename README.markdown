@@ -48,8 +48,8 @@ URxvt.keysym.C-Up:     perl:font-size:increase
 URxvt.keysym.C-Down:   perl:font-size:decrease
 URxvt.keysym.C-S-Up:   perl:font-size:incglobal
 URxvt.keysym.C-S-Down: perl:font-size:decglobal
-URxvt.keysym.C-equal   perl:font-size:reset
-URxvt.keysym.C-slash   perl:font-size:show
+URxvt.keysym.C-equal:  perl:font-size:reset
+URxvt.keysym.C-slash:  perl:font-size:show
 ```
 
 The following functions are supported:
