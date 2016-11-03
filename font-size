@@ -181,7 +181,7 @@ sub on_action
 
 sub fonts_change_size
 {
-    my ($term, $change, $save) = @_;
+    my ($term, $delta, $save) = @_;
 
     my @newfonts = ();
 
@@ -193,21 +193,21 @@ sub fonts_change_size
     my @curfonts = split(/\s*,\s*/, $curres);
 
     my $basefont = shift(@curfonts);
-    my ($newbasefont, $newbasesize) = handle_font($term, $basefont, $change, 0);
+    my ($newbasefont, $newbasedelta, $newbasesize) = handle_font($term, $basefont, $delta, 0, 0);
     push @newfonts, $newbasefont;
 
     # Only adjust other fonts if base font changed
     if ($newbasefont ne $basefont) {
         foreach my $font (@curfonts) {
-            my ($newfont, $newsize) = handle_font($term, $font, $change, $newbasesize);
+            my ($newfont, $newdelta, $newsize) = handle_font($term, $font, $delta, $newbasedelta, $newbasesize);
             push @newfonts, $newfont;
         }
         my $newres = join(",", @newfonts);
         font_apply_new($term, $newres, "font", $save);
 
-        handle_type($term, "boldFont",       $change, $newbasesize, $save);
-        handle_type($term, "italicFont",     $change, $newbasesize, $save);
-        handle_type($term, "boldItalicFont", $change, $newbasesize, $save);
+        handle_type($term, "boldFont",       $delta, $newbasedelta, $newbasesize, $save);
+        handle_type($term, "italicFont",     $delta, $newbasedelta, $newbasesize, $save);
+        handle_type($term, "boldItalicFont", $delta, $newbasedelta, $newbasesize, $save);
     }
 
     if ($save > 1) {
@@ -248,7 +248,7 @@ sub fonts_show
 
 sub handle_type
 {
-    my ($term, $type, $change, $basesize, $save) = @_;
+    my ($term, $type, $delta, $basedelta, $basesize, $save) = @_;
 
     my $curres = $term->resource($type);
     if (!$curres) {
@@ -258,7 +258,7 @@ sub handle_type
     my @newfonts = ();
 
     foreach my $font (@curfonts) {
-        my ($newfont, $newsize) = handle_font($term, $font, $change, $basesize);
+        my ($newfont, $newdelta, $newsize) = handle_font($term, $font, $delta, $basedelta, $basesize);
         push @newfonts, $newfont;
     }
 
@@ -268,9 +268,10 @@ sub handle_type
 
 sub handle_font
 {
-    my ($term, $font, $change, $basesize) = @_;
+    my ($term, $font, $delta, $basedelta, $basesize) = @_;
 
     my $newfont;
+    my $newdelta;
     my $newsize;
     my $prefix = 0;
 
@@ -279,9 +280,9 @@ sub handle_font
         $prefix = 1;
     }
     if ($font =~ /^\s*(\[.*\])?xft:/) {
-        ($newfont, $newsize) = font_change_size_xft($term, $font, $change, $basesize);
+        ($newfont, $newdelta, $newsize) = font_change_size_xft($term, $font, $delta, $basedelta, $basesize);
     } elsif ($font =~ /^\s*-/) {
-        ($newfont, $newsize) = font_change_size_xlfd($term, $font, $change, $basesize);
+        ($newfont, $newdelta, $newsize) = font_change_size_xlfd($term, $font, $delta, $basedelta, $basesize);
     } else {
         # check whether the font is a valid alias and if yes resolve it to the
         # actual font
@@ -293,24 +294,24 @@ sub handle_font
             if ($basesize == 0) {
                 $term->scr_bell;
             }
-            return ($font, $basesize);
+            return ($font, $basedelta, $basesize);
         }
 
         my $fontinfo = (split(/\n/, $lsfinfo))[-1];
         my ($fontfull) = ($fontinfo =~ /\s+([-a-z0-9]+$)/);
-        ($newfont, $newsize) = font_change_size_xlfd($term, $fontfull, $change, $basesize);
+        ($newfont, $newdelta, $newsize) = font_change_size_xlfd($term, $fontfull, $delta, $basedelta, $basesize);
     }
 
     # $term->scr_add_lines("\r\nNew font is $newfont\n");
     if ($prefix) {
         $newfont = "x:$newfont";
     }
-    return ($newfont, $newsize);
+    return ($newfont, $newdelta, $newsize);
 }
 
 sub font_change_size_xft
 {
-    my ($term, $fontstring, $change, $basesize) = @_;
+    my ($term, $fontstring, $delta, $basedelta, $basesize) = @_;
 
     my @pieces   = split(/:/, $fontstring);
     my @resized  = ();
@@ -321,10 +322,10 @@ sub font_change_size_xft
         if ($piece =~ /^(?:(?:pixel)?size=|[^=-]+-)(\d+(\.\d*)?)$/) {
             $size = $1;
 
-            if ($basesize != 0) {
-                $new_size = $basesize;
+            if ($basedelta != 0) {
+                $new_size = $size + $basedelta;
             } else {
-                $new_size = $size + $change
+                $new_size = $size + $delta;
             }
 
             $piece =~ s/(=|-)$size/$1$new_size/;
@@ -336,18 +337,18 @@ sub font_change_size_xft
 
     # don't make fonts too small
     if ($new_size >= 6) {
-        return ($resized_str, $new_size);
+        return ($resized_str, $new_size - $size, $new_size);
     } else {
         if ($basesize == 0) {
             $term->scr_bell;
         }
-        return ($fontstring, $size);
+        return ($fontstring, 0, $size);
     }
 }
 
 sub font_change_size_xlfd
 {
-    my ($term, $fontstring, $change, $basesize) = @_;
+    my ($term, $fontstring, $delta, $basedelta, $basesize) = @_;
 
     #-xos4-terminus-medium-r-normal-*-12-*-*-*-*-*-*-1
 
@@ -410,26 +411,26 @@ sub font_change_size_xlfd
         if ($possible[0]->[0] > $basesize) {
             foreach my $candidate (@possible) {
                 if ($candidate->[0] <= $basesize) {
-                    return ($candidate->[1], $candidate->[0]);
+                    return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
                 }
             }
         }
-    } elsif ($change > 0) {
+    } elsif ($delta > 0) {
         # sort by font size, ascending
         @possible = sort {$a->[0] <=> $b->[0]} @possible;
 
         foreach my $candidate (@possible) {
-            if ($candidate->[0] >= $font{pixelSize} + $change) {
-                return ($candidate->[1], $candidate->[0]);
+            if ($candidate->[0] >= $font{pixelSize} + $delta) {
+                return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
             }
         }
-    } elsif ($change < 0) {
+    } elsif ($delta < 0) {
         # sort by font size, descending
         @possible = sort {$b->[0] <=> $a->[0]} @possible;
 
         foreach my $candidate (@possible) {
-            if ($candidate->[0] <= $font{pixelSize} + $change && $candidate->[0] != 0) {
-                return ($candidate->[1], $candidate->[0]);
+            if ($candidate->[0] <= $font{pixelSize} + $delta && $candidate->[0] != 0) {
+                return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
             }
         }
     }
@@ -438,14 +439,14 @@ sub font_change_size_xlfd
     # fit the size of the base font
     @possible = sort {$a->[0] <=> $b->[0]} @possible;
     if ($basesize != 0 && $possible[0]->[0] == 0) {
-        return ($possible[0]->[1], $basesize);
+        return ($possible[0]->[1], $basedelta, $basesize);
     } else {
         # if there is absolutely no smaller/larger font that can be used
         # return the current one, and beep if this is the base font
         if ($basesize == 0) {
             $term->scr_bell;
         }
-        return ("-$fontstring", $font{pixelSize});
+        return ("-$fontstring", 0, $font{pixelSize});
     }
 }
 
