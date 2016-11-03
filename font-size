@@ -383,7 +383,7 @@ sub font_change_size_xlfd
     }
     my $new_fontstring = '-' . join('-', @pattern{@fields});
 
-    my @possible;
+    my @candidates;
     # $term->scr_add_lines("\r\nPattern is $new_fontstring\n");
     open(FOO, "xlsfonts -fn '$new_fontstring' | sort -u |") or die $!;
     while (<FOO>) {
@@ -391,25 +391,25 @@ sub font_change_size_xlfd
         s/^-//;  # Strip leading '-' before split
         my @fontdata = split(/-/, $_);
 
-        push @possible, [$fontdata[6], "-$_"];
+        push @candidates, [$fontdata[6], "-$_"];
         # $term->scr_add_lines("\r\npossibly $fontdata[6] $_\n");
     }
     close(FOO);
 
-    if (!@possible) {
+    if (!@candidates) {
         die "No possible fonts!";
     }
 
     if ($basesize != 0) {
         # sort by font size, descending
-        @possible = sort {$b->[0] <=> $a->[0]} @possible;
+        @candidates = sort {$b->[0] <=> $a->[0]} @candidates;
 
         # font is not the base font, so find the largest font that is at most
         # as large as the base font. If the largest possible font is smaller
         # than the base font bail and hope that a 0-size font can be found at
         # the end of the function
-        if ($possible[0]->[0] > $basesize) {
-            foreach my $candidate (@possible) {
+        if ($candidates[0]->[0] > $basesize) {
+            foreach my $candidate (@candidates) {
                 if ($candidate->[0] <= $basesize) {
                     return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
                 }
@@ -417,18 +417,18 @@ sub font_change_size_xlfd
         }
     } elsif ($delta > 0) {
         # sort by font size, ascending
-        @possible = sort {$a->[0] <=> $b->[0]} @possible;
+        @candidates = sort {$a->[0] <=> $b->[0]} @candidates;
 
-        foreach my $candidate (@possible) {
+        foreach my $candidate (@candidates) {
             if ($candidate->[0] >= $font{pixelSize} + $delta) {
                 return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
             }
         }
     } elsif ($delta < 0) {
         # sort by font size, descending
-        @possible = sort {$b->[0] <=> $a->[0]} @possible;
+        @candidates = sort {$b->[0] <=> $a->[0]} @candidates;
 
-        foreach my $candidate (@possible) {
+        foreach my $candidate (@candidates) {
             if ($candidate->[0] <= $font{pixelSize} + $delta && $candidate->[0] != 0) {
                 return ($candidate->[1], $candidate->[0] - $font{pixelSize}, $candidate->[0]);
             }
@@ -437,9 +437,9 @@ sub font_change_size_xlfd
 
     # no fitting font available, check whether a 0-size font can be used to
     # fit the size of the base font
-    @possible = sort {$a->[0] <=> $b->[0]} @possible;
-    if ($basesize != 0 && $possible[0]->[0] == 0) {
-        return ($possible[0]->[1], $basedelta, $basesize);
+    @candidates = sort {$a->[0] <=> $b->[0]} @candidates;
+    if ($basesize != 0 && $candidates[0]->[0] == 0) {
+        return ($candidates[0]->[1], $basedelta, $basesize);
     } else {
         # if there is absolutely no smaller/larger font that can be used
         # return the current one, and beep if this is the base font
