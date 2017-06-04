@@ -40,6 +40,11 @@ URxvt.keysym.C-S-Down: font-size:decglobal
 URxvt.keysym.C-equal:  font-size:reset
 URxvt.keysym.C-slash:  font-size:show
 ```
+Then load your new `~/.Xresources` to see the changes in the next terminal you open:
+
+```
+$ xrdb -merge ~/.Xresources
+```
 
 Note that for urxvt versions older than 9.21 the resources have to look like this:
 
