@@ -30,7 +30,10 @@ URxvt.perl-ext-common: ...,font-size
 Note: if your urxvt version is older than 9.14 you will have to add the path
 to the script to the `URxvt.perl-lib` resource.
 
-Add some keybindings:
+The extension automatically binds Ctrl++ to the 'increase' function,
+Ctrl+- to 'decrease', and Ctrl+0 to 'reset'. To use the other available functions
+or change the keys, add some keybindings of your own:
+
 
 ```
 URxvt.keysym.C-Up:     font-size:increase
