@@ -32,6 +32,8 @@
 # https://github.com/noah/urxvt-font
 # https://github.com/simmel/urxvt-resize-font
 #
+# X11 fonts background:
+# http://keithp.com/~keithp/talks/xtc2001/paper/
 
 #:META:X_RESOURCE:%.step:interger:font size increase/decrease step
 
