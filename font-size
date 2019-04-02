@@ -227,8 +227,13 @@ sub fonts_change_size
 
     if ($save > 1) {
         # write the new values back to the file
-        my $xresources = readlink $ENV{"HOME"} . "/.Xresources";
-        system("xrdb -edit " . $xresources);
+        my $xresources = $ENV{"HOME"} . "/.Xresources";
+        my $readlinked = readlink $xresources;
+        if ($readlinked) {
+            system("xrdb -edit " . $readlinked);
+        } else {
+            system("xrdb -edit " . $xresources);
+        }
     }
 }
 
