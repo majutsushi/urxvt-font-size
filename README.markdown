@@ -38,6 +38,8 @@ or change the keys, add some keybindings of your own:
 ```
 URxvt.keysym.C-Up:     font-size:increase
 URxvt.keysym.C-Down:   font-size:decrease
+URxvt.keysym.M-C-Up:   font-size:incpreserve
+URxvt.keysym.M-C-Down: font-size:decpreserve
 URxvt.keysym.C-S-Up:   font-size:incglobal
 URxvt.keysym.C-S-Down: font-size:decglobal
 URxvt.keysym.C-equal:  font-size:reset
@@ -54,6 +56,8 @@ Note that for urxvt versions older than 9.21 the resources have to look like thi
 ```
 URxvt.keysym.C-Up:     perl:font-size:increase
 URxvt.keysym.C-Down:   perl:font-size:decrease
+URxvt.keysym.M-C-Up:   perl:font-size:incpreserve
+URxvt.keysym.M-C-Down: perl:font-size:decpreserve
 URxvt.keysym.C-S-Up:   perl:font-size:incglobal
 URxvt.keysym.C-S-Down: perl:font-size:decglobal
 URxvt.keysym.C-equal:  perl:font-size:reset
@@ -64,8 +68,10 @@ The following functions are supported:
 
 -   `increase`/`decrease`: Increase or decrease the font size of the current
     terminal.
--   `incglobal`/`decglobal`: Same as above and also adjust the X server values
-    so all newly started terminals will use the same fontsize.
+-   `incpreserve`/`decpreserve`: Same as above but also preserves window
+    dimensions.
+-   `incglobal`/`decglobal`: Same as increase/decrease and also adjust the X
+    server values so all newly started terminals will use the same fontsize.
 -   `incsave`/`decsave`: Same as incglobal/decglobal and also modify the
     `~/.Xresources` file so the changed font sizes will persist over a restart
     of the X server or a reboot.
