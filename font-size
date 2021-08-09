@@ -54,6 +54,8 @@ or change the keys, add some keybindings of your own:
 
   URxvt.keysym.C-Up:     font-size:increase
   URxvt.keysym.C-Down:   font-size:decrease
+  URxvt.keysym.M-C-Up:   font-size:incpreserve
+  URxvt.keysym.M-C-Down: font-size:decpreserve
   URxvt.keysym.C-S-Up:   font-size:incglobal
   URxvt.keysym.C-S-Down: font-size:decglobal
   URxvt.keysym.C-equal:  font-size:reset
@@ -63,6 +65,8 @@ Note that for urxvt versions older than 9.21 the resources have to look like thi
 
   URxvt.keysym.C-Up:     perl:font-size:increase
   URxvt.keysym.C-Down:   perl:font-size:decrease
+  URxvt.keysym.M-C-Up:   perl:font-size:incpreserve
+  URxvt.keysym.M-C-Down: perl:font-size:decpreserve
   URxvt.keysym.C-S-Up:   perl:font-size:incglobal
   URxvt.keysym.C-S-Down: perl:font-size:decglobal
   URxvt.keysym.C-equal:  perl:font-size:reset
@@ -76,10 +80,14 @@ Supported functions:
 
       increase or decrease the font size of the current terminal.
 
+=item * incpreserve/decpreserve:
+
+      same as above but also preserves window dimensions.
+
 =item * incglobal/decglobal:
 
-      same as above and also adjust the X server values so all newly
-      started terminals will use the same fontsize.
+      same as increase/decrease and also adjust the X server values
+      so all newly started terminals will use the same fontsize.
 
 =item * incsave/decsave:
 
@@ -141,6 +149,9 @@ sub on_start
     foreach my $type (qw(font boldFont italicFont boldItalicFont)) {
         $self->{$type} = $self->x_resource($type) || "undef";
     }
+
+    my $int_bwidth = $self->resource("int_bwidth");
+    $self->{internalBorder} = defined($int_bwidth) ? $int_bwidth : 2;
 }
 
 # Needed for backwards compatibility with < 9.21
@@ -151,17 +162,21 @@ sub on_user_command
     my $step = $self->{step};
 
     if ($cmd eq "font-size:increase") {
-        fonts_change_size($self,  $step, 0);
+        fonts_change_size($self,  $step, 0, 0);
     } elsif ($cmd eq "font-size:decrease") {
-        fonts_change_size($self, -$step, 0);
+        fonts_change_size($self, -$step, 0, 0);
+    } elsif ($cmd eq "font-size:incpreserve") {
+        fonts_change_size($self,  $step, 0, 1);
+    } elsif ($cmd eq "font-size:decpreserve") {
+        fonts_change_size($self, -$step, 0, 1);
     } elsif ($cmd eq "font-size:incglobal") {
-        fonts_change_size($self,  $step, 1);
+        fonts_change_size($self,  $step, 1, 0);
     } elsif ($cmd eq "font-size:decglobal") {
-        fonts_change_size($self, -$step, 1);
+        fonts_change_size($self, -$step, 1, 0);
     } elsif ($cmd eq "font-size:incsave") {
-        fonts_change_size($self,  $step, 2);
+        fonts_change_size($self,  $step, 2, 0);
     } elsif ($cmd eq "font-size:decsave") {
-        fonts_change_size($self, -$step, 2);
+        fonts_change_size($self, -$step, 2, 0);
     } elsif ($cmd eq "font-size:reset") {
         fonts_reset($self);
     } elsif ($cmd eq "font-size:show") {
@@ -176,17 +191,21 @@ sub on_action
     my $step = $self->{step};
 
     if ($action eq "increase") {
-        fonts_change_size($self,  $step, 0);
+        fonts_change_size($self,  $step, 0, 0);
     } elsif ($action eq "decrease") {
-        fonts_change_size($self, -$step, 0);
+        fonts_change_size($self, -$step, 0, 0);
+    } elsif ($action eq "incpreserve") {
+        fonts_change_size($self,  $step, 0, 1);
+    } elsif ($action eq "decpreserve") {
+        fonts_change_size($self, -$step, 0, 1);
     } elsif ($action eq "incglobal") {
-        fonts_change_size($self,  $step, 1);
+        fonts_change_size($self,  $step, 1, 0);
     } elsif ($action eq "decglobal") {
-        fonts_change_size($self, -$step, 1);
+        fonts_change_size($self, -$step, 1, 0);
     } elsif ($action eq "incsave") {
-        fonts_change_size($self,  $step, 2);
+        fonts_change_size($self,  $step, 2, 0);
     } elsif ($action eq "decsave") {
-        fonts_change_size($self, -$step, 2);
+        fonts_change_size($self, -$step, 2, 0);
     } elsif ($action eq "reset") {
         fonts_reset($self);
     } elsif ($action eq "show") {
@@ -196,7 +215,7 @@ sub on_action
 
 sub fonts_change_size
 {
-    my ($term, $delta, $save) = @_;
+    my ($term, $delta, $save, $preserve_dims) = @_;
 
     my @newfonts = ();
 
@@ -218,7 +237,7 @@ sub fonts_change_size
             push @newfonts, $newfont;
         }
         my $newres = join(",", @newfonts);
-        font_apply_new($term, $newres, "font", $save);
+        font_apply_new($term, $newres, "font", $save, $preserve_dims);
 
         handle_type($term, "boldFont",       $delta, $newbasedelta, $newbasesize, $save);
         handle_type($term, "italicFont",     $delta, $newbasedelta, $newbasesize, $save);
@@ -239,7 +258,7 @@ sub fonts_reset
     foreach my $type (qw(font boldFont italicFont boldItalicFont)) {
         my $initial = $term->{$type};
         if ($initial ne "undef") {
-            font_apply_new($term, $initial, $type, 0);
+            font_apply_new($term, $initial, $type, 0, 0);
         }
     }
 }
@@ -278,7 +297,7 @@ sub handle_type
     }
 
     my $newres = join(",", @newfonts);
-    font_apply_new($term, $newres, $type, $save);
+    font_apply_new($term, $newres, $type, $save, 0);
 }
 
 sub handle_font
@@ -465,13 +484,48 @@ sub font_change_size_xlfd
     }
 }
 
+sub get_wm_borders
+{
+    my ($term) = @_;
+
+    my ($type, $format, $items) = $term->XGetWindowProperty($term->parent, $term->XInternAtom("_NET_FRAME_EXTENTS"));
+    my ($left, $right, $top, $bottom) = unpack "l!*", $items;
+
+    return ($left, $right, $top, $bottom);
+}
+
+sub get_window_dims
+{
+    my ($term) = @_;
+    my $w = $term->width;
+    my $h = $term->height;
+    my ($b_left, $b_right, $b_top, $b_bottom) = get_wm_borders($term);
+    my ($x, $y, $child) = $term->XTranslateCoordinates($term->parent, $term->DefaultRootWindow, 0, 0);
+
+    # add internalBorder width to both sides of both dimensions
+    $w += 2 * $term->{internalBorder};
+    $h += 2 * $term->{internalBorder};
+
+    # subtract WM decoration border widths to left and top coordinate
+    $x -= $b_left;
+    $y -= $b_top;
+
+    return ($x, $y, $w, $h);
+}
+
 sub font_apply_new
 {
-    my ($term, $newfont, $type, $save) = @_;
+    my ($term, $newfont, $type, $save, $preserve_dims) = @_;
+    my ($old_x, $old_y, $old_w, $old_h) = get_window_dims($term);
 
     # $term->scr_add_lines("\r\nnew font is $newfont\n");
 
     $term->cmd_parse("\033]" . $escapecodes{$type} . ";" . $newfont . "\033\\");
+
+    if ($preserve_dims) {
+        # resize window to previous dimensions
+        $term->XMoveResizeWindow($term->parent, $old_x, $old_y, $old_w, $old_h);
+    }
 
     # load the xrdb db
     # system("xrdb -load " . X_RESOURCES);
